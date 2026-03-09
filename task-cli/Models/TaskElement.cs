@@ -8,13 +8,13 @@ namespace TaskCli.Models
     public enum Status
     {
         todo,
-        in_progress,
+        inProgress,
         done
     }
 
     internal class TaskElement
     {
-        public int ID { get; }
+        public int ID { get; init; }
 
         public string? description { get; set; }
 
@@ -23,5 +23,10 @@ namespace TaskCli.Models
         public DateTime createdAt { get; set; }
 
         public DateTime updatedAt { get; set; }
+
+        public override string ToString()
+        {
+            return $"({ID}) [{status}] \"{description}\" (Created at: {createdAt:t}, {createdAt:d} | Updated at: {updatedAt:t}, {updatedAt:d})";
+        }
     }
 }
