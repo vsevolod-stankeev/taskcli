@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace taskcli.Models
+namespace TaskCli.Models
 {
+
     public enum Status
     {
         todo,

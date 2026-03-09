@@ -1,47 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using taskcli.Models;
+using TaskCli.Models;
 
-namespace taskcli.Services
+namespace TaskCli.Services
 {
     internal class ServiceForListOfTasks
     {
         List<TaskElement> ListOfTasks = new List<TaskElement>();
 
-        public void add(TaskElement element) {
+        public void Load()
+        {
 
         }
 
-        public void update(int ID) {
+        public void Save()
+        {
 
         }
 
-        public void remove(int ID) {
+        public void Add(string description) {
 
         }
 
-        public void mark_in_progress(int ID) {
+        public TaskElement? Update(int ID, string new_description) {
+            return null;
+        }
+
+        public bool Delete(int ID) {
+            return true;
+        }
+
+        public bool MarkInProgress(int ID) {
+            return true;
+        }
+
+        public bool MarkDone(int ID) {
+            return true;
+        }
+
+        public void List() { 
 
         }
 
-        public void mark_done(int ID) {
+        public void Todo() {
 
         }
 
-        public void list() { 
+        public void InProgress() {
 
         }
 
-        public void todo() {
-
-        }
-
-        public void in_progress() {
-
-        }
-
-        public void done() {
+        public void Done() {
 
         }
     }
