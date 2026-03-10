@@ -12,57 +12,92 @@ namespace TaskCli.Services
 
         private const string jsonName = "listOfTasks.json";
 
-        private int idCount = 1;
-
         public void Load()
         {
             if (File.Exists(jsonName))
             {
                 string list = File.ReadAllText(jsonName, Encoding.UTF8);
-                listOfTasks = JsonSerializer.Deserialize<List<TaskElement>>(list);
+
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(list))
+                    {
+                        listOfTasks = JsonSerializer.Deserialize<List<TaskElement>>(list);
+                    }
+                    else
+                    {
+                        File.Copy(jsonName, "listOfTasks.json.backup", true);
+                        File.Delete(jsonName);
+
+                        Console.WriteLine("The list has been corrupted, and a backup copy of the list has been saved in a file: listOfTasks.json.backup");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
         public void Save()
         {
             string jsonOfTasks = JsonSerializer.Serialize(listOfTasks, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(jsonName, jsonOfTasks, Encoding.UTF8);
+            File.WriteAllText(jsonName, jsonOfTasks, Encoding.UTF8);          
         }
 
-        public void Add(string description) 
+        public bool Add(string description) 
         {
             if (listOfTasks is not null)
             {
-                idCount = listOfTasks[listOfTasks.Count - 1].ID + 1;
+                int idCount = 1;
+
+                if (listOfTasks.Count > 0)
+                {
+                    idCount = listOfTasks[listOfTasks.Count - 1].ID + 1;
+                }
+
+                listOfTasks?.Add(new TaskElement()
+                {
+                    ID = idCount,
+                    description = description,
+                    status = Status.todo,
+                    createdAt = DateTime.Now,
+                    updatedAt = DateTime.Now
+                });
+
+                return true;
             }
-            
-            listOfTasks?.Add(new TaskElement()
-            {
-                ID = idCount,
-                description = description,
-                status = Status.todo,
-                createdAt = DateTime.Now,
-                updatedAt = DateTime.Now
-            });
+
+            return false;
         }
 
         public TaskElement? Update(int id, string newDescription) 
         {
-            TaskElement? task = listOfTasks?.Find(task => task.ID == id);
-            if (task != null)
+            if (listOfTasks is not null)
             {
-                task.description = newDescription;
+                TaskElement? task = listOfTasks.Find(task => task.ID == id);
+                if (task != null)
+                {
+                    task.description = newDescription;
+                }
+
+                return task;
             }
 
-            return task;
+            return null;
         }
 
         public bool Delete(int id) 
         {
-            TaskElement? task = listOfTasks?.Find(task => task.ID == id);
-            if (task != null && listOfTasks != null)
+            if (listOfTasks is not null)
             {
-                return listOfTasks.Remove(task);
+                TaskElement? task = listOfTasks.Find(task => task.ID == id);
+                if (task != null && listOfTasks.Count > 0)
+                {
+                    return listOfTasks.Remove(task);
+                }
+
+                return false;
             }
 
             return false;
@@ -70,11 +105,14 @@ namespace TaskCli.Services
 
         public bool MarkInProgress(int id) 
         {
-            TaskElement? task = listOfTasks?.Find(task => task.ID == id);
-            if (task != null)
+            if (listOfTasks is not null)
             {
-                task.status = Status.inProgress;
-                return true;
+                TaskElement? task = listOfTasks.Find(task => task.ID == id);
+                if (task != null)
+                {
+                    task.status = Status.inProgress;
+                    return true;
+                }
             }
 
             return false;
@@ -82,24 +120,33 @@ namespace TaskCli.Services
 
         public bool MarkDone(int id) 
         {
-            TaskElement? task = listOfTasks?.Find(task => task.ID == id);
-            if (task != null)
+            if (listOfTasks is not null)
             {
-                task.status = Status.done;
-                return true;
+                TaskElement? task = listOfTasks.Find(task => task.ID == id);
+                if (task != null)
+                {
+                    task.status = Status.done;
+                    return true;
+                }
             }
 
             return false;
         }
 
-        // LINQ!
         public void List() 
         {
             if (listOfTasks is not null)
             {
-                foreach (TaskElement task in listOfTasks)
+                if (listOfTasks.Count > 0)
                 {
-                    Console.WriteLine(task.ToString());
+                    foreach (TaskElement task in listOfTasks)
+                    {
+                        Console.WriteLine(task.ToString());
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("The list is empty");
                 }
             }
             else
@@ -110,21 +157,29 @@ namespace TaskCli.Services
 
         public void Todo()
         {
-            int count = 0;
-
             if (listOfTasks is not null)
             {
-                foreach (TaskElement task in listOfTasks)
+                if (listOfTasks.Count > 0)
                 {
-                    if (task.status == Status.todo)
+                    var tasksToDo = from task in listOfTasks
+                                    where task.status == Status.todo
+                                    select task;
+
+                    if (tasksToDo.Count() > 0)
                     {
-                        Console.WriteLine(task.ToString());
-                        count++;
+                        foreach (TaskElement task in tasksToDo)
+                        {
+                            Console.WriteLine(task.ToString());
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("The list todo is empty");
                     }
                 }
-                if (count == 0)
+                else
                 {
-                    Console.WriteLine("The list todo is empty");
+                    Console.WriteLine("The list is empty");
                 }
             }
             else
@@ -135,46 +190,62 @@ namespace TaskCli.Services
 
         public void InProgress() 
         {
-            int count = 0;
-
             if (listOfTasks is not null)
             {
-                foreach (TaskElement task in listOfTasks)
+                if (listOfTasks.Count > 0)
                 {
-                    if (task.status == Status.inProgress)
+                    var tasksInProgress = from task in listOfTasks
+                                          where task.status == Status.inProgress
+                                          select task;
+
+                    if (tasksInProgress.Count() > 0)
                     {
-                        Console.WriteLine(task.ToString());
-                        count++;
+                        foreach (TaskElement task in tasksInProgress)
+                        {
+                            Console.WriteLine(task.ToString());
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("The list in progress is empty");
                     }
                 }
-                if (count == 0)
+                else
                 {
-                    Console.WriteLine("The list in progress is empty");
+                    Console.WriteLine("The list is empty");
                 }
             }
             else
             {
-                Console.WriteLine("The list is empty");
+                Console.WriteLine("The list is empty"); 
             }
         }
 
         public void Done() 
         {
-            int count = 0;
-
             if (listOfTasks is not null)
             {
-                foreach (TaskElement task in listOfTasks)
+                if (listOfTasks.Count > 0)
                 {
-                    if (task.status == Status.done)
+                    var tasksDone = from task in listOfTasks
+                                    where task.status == Status.done
+                                    select task;
+
+                    if (tasksDone.Count() > 0)
                     {
-                        Console.WriteLine(task.ToString());
-                        count++;
+                        foreach (TaskElement task in tasksDone)
+                        {
+                            Console.WriteLine(task.ToString());
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("The list done is empty");
                     }
                 }
-                if (count == 0)
+                else
                 {
-                    Console.WriteLine("The list done is empty");
+                    Console.WriteLine("The list is empty");
                 }
             }
             else

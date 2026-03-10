@@ -25,9 +25,15 @@ namespace TaskCli
                     if (args.Length == 2)
                     {
                         string description = args[1];
-                        service.Add(description);
-                        service.Save();
-                        Console.WriteLine("Task added");
+                        if (service.Add(description))
+                        {
+                            service.Save();
+                            Console.WriteLine("Task added");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Couldn't add task");
+                        }
                     }
                     else if (args.Length > 2)
                     {
@@ -37,6 +43,7 @@ namespace TaskCli
                     {
                         Console.WriteLine("Missed entering the task name");
                     }
+
                     break;
 
                 case "update":
@@ -69,6 +76,7 @@ namespace TaskCli
                     {
                         Console.WriteLine("Missed entering the task id and/or changes");
                     }
+
                     break;
 
                 case "delete":
@@ -98,7 +106,8 @@ namespace TaskCli
                     else
                     {
                         Console.WriteLine("Missed entering the task id");
-                    }            
+                    }     
+                    
                     break;
 
                 case "mark-in-progress":
@@ -129,6 +138,7 @@ namespace TaskCli
                     {
                         Console.WriteLine("Missed entering the task id");
                     }
+
                     break;
 
                 case "mark-done":
@@ -159,6 +169,7 @@ namespace TaskCli
                     {
                         Console.WriteLine("Missed entering the task id");
                     }
+
                     break;
 
                 case "list":
@@ -193,6 +204,7 @@ namespace TaskCli
                     {
                         Console.WriteLine("Exceeding the possible number of arguments");
                     }
+
                     break;
 
                 default:
